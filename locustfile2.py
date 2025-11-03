@@ -4,12 +4,12 @@ import random
 
 class ImageTestUser(HttpUser):
     """
-    🔹 Simulates users requesting random images from https://dummyimage.com
-    🔹 Each request has a random size, background/text color, text, and format.
-    🔹 Useful for testing performance and cache efficiency under variable workloads.
+    🔹 Simulates users requesting random images from https://dummyjson.com
+    🔹 Each request has a random size, text, and image format.
+    🔹 Prints out the full image URL for verification.
     """
 
-    host = "https://dummyimage.com"
+    host = "https://dummyjson.com"
     wait_time = between(1, 3)
 
     @task
@@ -17,22 +17,24 @@ class ImageTestUser(HttpUser):
         """
         🔸 Request a random image with:
           - Random size between 100x100 and 800x600
-          - Random background and text colors (hex)
           - Random image type (jpg, png, webp)
           - Random text label
         """
-        # Generate random image parameters
         width = random.randint(100, 800)
         height = random.randint(100, 600)
-        bg_color = f"{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
-        text_color = f"{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
         image_type = random.choice(["jpg", "png", "webp"])
         text = random.choice(["Hello", "Locust", "Testing", "Random", "LoadTest"])
 
-        # Build request path
-        path = (
-            f"/{width}x{height}/{bg_color}/{text_color}?text={text}&type={image_type}"
-        )
+        # Build full URL for DummyJSON
+        path = f"/image/{width}x{height}?type={image_type}&text={text}"
+        full_url = f"{self.host}{path}"
+
+        # ✅ Print the image link
+        print(f"[REQUEST] 🖼️ {full_url}")
 
         # Send GET request
-        self.client.get(path, name="/image/random")
+        with self.client.get(path, name="/image/random", catch_response=True) as res:
+            if res.status_code != 200:
+                res.failure(f"❌ Failed with status {res.status_code}")
+            else:
+                res.success()
