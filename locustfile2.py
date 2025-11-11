@@ -33,8 +33,4 @@ class ImageTestUser(HttpUser):
         print(f"[REQUEST] 🖼️ {full_url}")
 
         # Send GET request
-        with self.client.get(path, name="/image/random", catch_response=True) as res:
-            if res.status_code != 200:
-                res.failure(f"❌ Failed with status {res.status_code}")
-            else:
-                res.success()
+        self.client.get(path, name="/image/random")
